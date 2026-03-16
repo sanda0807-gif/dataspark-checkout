@@ -5383,20 +5383,29 @@
         showSlide(getSlideFromHash());
 
         // ========== 密碼保護功能 ==========
-        const CORRECT_PASSWORD = "97505548";
+        const PASSWORD_HASH = "f56a030b02e9de1536bd951fcb5f5e5569149d8510285a3c746dca8ef5b9989c";
         const passwordOverlay = document.getElementById('password-overlay');
         const passwordInput = document.getElementById('password-input');
         const passwordError = document.getElementById('password-error');
 
+        // SHA-256 雜湊函式
+        async function sha256(message) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
         // 檢查是否已驗證過
-        if (sessionStorage.getItem('pocketbiz_auth') === CORRECT_PASSWORD) {
+        if (sessionStorage.getItem('pocketbiz_auth') === PASSWORD_HASH) {
             passwordOverlay.classList.add('hidden');
         }
 
-        function checkPassword() {
+        async function checkPassword() {
             const inputValue = passwordInput.value;
-            if (inputValue === CORRECT_PASSWORD) {
-                sessionStorage.setItem('pocketbiz_auth', CORRECT_PASSWORD);
+            const inputHash = await sha256(inputValue);
+            if (inputHash === PASSWORD_HASH) {
+                sessionStorage.setItem('pocketbiz_auth', PASSWORD_HASH);
                 passwordOverlay.classList.add('hidden');
             } else {
                 passwordInput.classList.add('error');
